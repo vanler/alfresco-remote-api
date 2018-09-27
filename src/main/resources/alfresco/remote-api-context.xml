@@ -92,4 +92,10 @@
       <property name="eventPublisher" ref="eventPublisher" />
       <property name="siteService" ref="SiteService" />
    </bean>
+
+   <bean id="metricsController" class="org.alfresco.metrics.MetricsController">
+      <property name="enabled">
+         <value>true</value>
+      </property>
+   </bean>
 </beans>

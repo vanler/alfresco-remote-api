@@ -25,6 +25,7 @@
  */
 package org.alfresco.rest.framework.tools;
 
+import org.alfresco.metrics.MetricsController;
 import org.alfresco.rest.framework.Api;
 import org.alfresco.rest.framework.core.exceptions.DefaultExceptionResolver;
 import org.alfresco.rest.framework.core.exceptions.ErrorResponse;
@@ -49,6 +50,7 @@ public class ApiAssistant {
     private ExceptionResolver<WebScriptException> webScriptExceptionResolver;
     private ExceptionResolver<Exception> resolver;
     private JacksonHelper jsonHelper;
+    private MetricsController metricsController;
 
     /**
      * Determines the api being used from the templateVars
@@ -104,5 +106,15 @@ public class ApiAssistant {
 
     public void setJsonHelper(JacksonHelper jsonHelper) {
         this.jsonHelper = jsonHelper;
+    }
+
+    public MetricsController getMetricsController()
+    {
+        return metricsController;
+    }
+
+    public void setMetricsController(MetricsController metricsController)
+    {
+        this.metricsController = metricsController;
     }
 }

@@ -880,9 +880,13 @@
     <!--      BlogService REST API    -->
     <!--                              -->
     <import resource="blogs/web-scripts-blog-context.xml"/>
-    
-    
-    <!--                                   -->
+
+   <!--  Metrics -->
+   <bean id="webscript.org.alfresco.metrics.prometheus.get" class="org.alfresco.repo.web.scripts.metrics.PrometheusGet"
+         parent="webscript">
+   </bean>
+
+   <!--                                   -->
     <!--      Workflow Service REST API    -->
     <!--                                   -->
 

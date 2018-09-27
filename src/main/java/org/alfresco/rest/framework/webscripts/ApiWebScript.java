@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import io.micrometer.core.instrument.LongTaskTimer;
 import org.alfresco.repo.web.scripts.BufferedRequest;
 import org.alfresco.repo.web.scripts.BufferedResponse;
 import org.alfresco.rest.framework.Api;
@@ -102,29 +103,38 @@ public abstract class ApiWebScript extends AbstractWebScript
     @Override
     public void execute(final WebScriptRequest req, final WebScriptResponse res) throws IOException
     {
-		Map<String, String> templateVars = req.getServiceMatch().getTemplateVars();
-		Api api = assistant.determineApi(templateVars);
-		
-		final BufferedRequest bufferedReq = getRequest(req);
-		final BufferedResponse bufferedRes = getResponse(res);
-
-		try
-		{
-		    execute(api, bufferedReq, bufferedRes);
-		}
-		finally
-		{
-            // Get rid of any temporary files
-            if (bufferedReq != null)
-            {
-                bufferedReq.close();
-            }
-		}
-
-        // Ensure a response is always flushed after successful execution
-        if (bufferedRes != null)
+        assistant.getMetricsController().recordRestApiCall();
+        LongTaskTimer.Sample task = assistant.getMetricsController().recordRestApiCallTime();
+        try
         {
-            bufferedRes.writeResponse();
+            Map<String, String> templateVars = req.getServiceMatch().getTemplateVars();
+            Api api = assistant.determineApi(templateVars);
+
+            final BufferedRequest bufferedReq = getRequest(req);
+            final BufferedResponse bufferedRes = getResponse(res);
+
+            try
+            {
+                execute(api, bufferedReq, bufferedRes);
+            }
+            finally
+            {
+                // Get rid of any temporary files
+                if (bufferedReq != null)
+                {
+                    bufferedReq.close();
+                }
+            }
+
+            // Ensure a response is always flushed after successful execution
+            if (bufferedRes != null)
+            {
+                bufferedRes.writeResponse();
+            }
+        }
+        finally
+        {
+            task.stop();
         }
     }
 

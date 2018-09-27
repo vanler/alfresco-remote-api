@@ -178,6 +178,7 @@
         <property name="jsonHelper" ref="jsonHelper" />
         <property name="resolver" ref="simpleMappingExceptionResolver" />
         <property name="webScriptExceptionResolver" ref="webScriptExceptionResolver" />
+        <property name="metricsController" ref="metricsController" />
     </bean>
 	<!-- Using annotation-config=false means AutowiredAnnotationBeanPostProcessor 
         and CommonAnnotationBeanPostProcessor are both NOT included implicitly -->
