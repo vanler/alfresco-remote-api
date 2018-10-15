@@ -253,6 +253,11 @@
             <version>8.2.0.v20160908</version>
             <scope>test</scope> 
         </dependency>
+        <dependency>
+           <groupId>org.alfresco</groupId>
+           <artifactId>alfresco-micrometer</artifactId>
+           <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <profiles>
          <!-- Profiles to extract the alfresco-pdf-renderer -->
