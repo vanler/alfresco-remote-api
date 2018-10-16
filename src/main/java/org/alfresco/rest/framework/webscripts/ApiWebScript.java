@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import org.alfresco.micrometer.RestMetricsProvider;
 import org.alfresco.repo.web.scripts.BufferedRequest;
 import org.alfresco.repo.web.scripts.BufferedResponse;
 import org.alfresco.rest.framework.Api;
@@ -42,9 +43,12 @@ import org.springframework.extensions.webscripts.AbstractWebScript;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.LongTaskTimer;
+import io.micrometer.core.instrument.LongTaskTimer.Sample;
+
 /**
- * Entry point for API webscript.  Supports version/scope as well
- * as discovery.
+ * Entry point for API webscript. Supports version/scope as well as discovery.
  *
  * @author Gethin James
  */
@@ -58,13 +62,19 @@ public abstract class ApiWebScript extends AbstractWebScript
     protected long maxContentSize = (long) 4 * 1024 * 1024 * 1024; // 4gb
     protected TempStoreOutputStreamFactory streamFactory = null;
     protected TransactionService transactionService;
+    protected LongTaskTimer longTaskTimer;
+    protected Counter counter;
+ 
+
+    protected Sample currentTask = null;
 
     public void setTransactionService(TransactionService transactionService)
     {
         this.transactionService = transactionService;
     }
 
-    public void setAssistant(ApiAssistant assistant) {
+    public void setAssistant(ApiAssistant assistant)
+    {
         this.assistant = assistant;
     }
 
@@ -93,39 +103,48 @@ public abstract class ApiWebScript extends AbstractWebScript
         this.streamFactory = streamFactory;
     }
 
+
     public void init()
     {
         File tempDirectory = TempFileProvider.getTempDir(tempDirectoryName);
         this.streamFactory = TempStoreOutputStreamFactory.newInstance(tempDirectory, memoryThreshold, maxContentSize, encryptTempFiles);
+
+        this.counter = assistant.getRestMetricsProvider().buildRequestCounter("number.restapi.webscript.calls", "Number of rest requests");
+        this.longTaskTimer = assistant.getRestMetricsProvider().buildLongTaskTimer("time.restapi.webscript.calls");
     }
 
     @Override
     public void execute(final WebScriptRequest req, final WebScriptResponse res) throws IOException
     {
-		Map<String, String> templateVars = req.getServiceMatch().getTemplateVars();
-		Api api = assistant.determineApi(templateVars);
-		
-		final BufferedRequest bufferedReq = getRequest(req);
-		final BufferedResponse bufferedRes = getResponse(res);
+        micrometerStart();
 
-		try
-		{
-		    execute(api, bufferedReq, bufferedRes);
-		}
-		finally
-		{
+        Map<String, String> templateVars = req.getServiceMatch().getTemplateVars();
+        Api api = assistant.determineApi(templateVars);
+
+        final BufferedRequest bufferedReq = getRequest(req);
+        final BufferedResponse bufferedRes = getResponse(res);
+
+        try
+        {
+            execute(api, bufferedReq, bufferedRes);
+        }
+        finally
+        {
             // Get rid of any temporary files
             if (bufferedReq != null)
             {
                 bufferedReq.close();
             }
-		}
+        }
 
         // Ensure a response is always flushed after successful execution
         if (bufferedRes != null)
         {
             bufferedRes.writeResponse();
         }
+
+        micrometerStop();
+
     }
 
     protected BufferedRequest getRequest(final WebScriptRequest req)
@@ -143,5 +162,26 @@ public abstract class ApiWebScript extends AbstractWebScript
     }
 
     public abstract void execute(final Api api, WebScriptRequest req, WebScriptResponse res) throws IOException;
+
+    private void micrometerStart()
+    {
+        if (counter != null)
+        {
+            counter.increment();
+        }
+
+        if (longTaskTimer != null)
+        {
+            currentTask = longTaskTimer.start();
+        }
+    }
+
+    private void micrometerStop()
+    {
+        if (currentTask != null)
+        {
+            currentTask.stop();
+        }
+    }
 
 }

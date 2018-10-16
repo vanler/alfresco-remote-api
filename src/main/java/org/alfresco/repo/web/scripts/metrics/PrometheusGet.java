@@ -27,48 +27,29 @@ package org.alfresco.repo.web.scripts.metrics;
 
 import java.io.IOException;
 
-import org.alfresco.micrometer.MetricsConfigService;
+import org.alfresco.micrometer.JVMMetricsProvider;
 import org.springframework.extensions.webscripts.AbstractWebScript;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 
 public class PrometheusGet extends AbstractWebScript
 {
+    private JVMMetricsProvider jvmMetricsProvider;
 
-    private boolean enableMetrics;
-
-    MetricsConfigService metricsConfigService = new MetricsConfigService();
-
-    public void setEnableMetrics(boolean enableMetrics)
+    public void setJvmMetricsProvider(JVMMetricsProvider jvmMetricsProvider)
     {
-        this.enableMetrics = enableMetrics;
+        this.jvmMetricsProvider = jvmMetricsProvider;
     }
 
     public void initPrometheus()
     {
-        if (enableMetrics)
-        {
-
-            MetricsConfigService.buildDefaultJVMMetrics();
-        }
+        jvmMetricsProvider.build();
     }
 
     @Override
     public void execute(WebScriptRequest webScriptRequest, WebScriptResponse webScriptResponse) throws IOException
     {
-
-        String response = null;
-        if (enableMetrics)
-        {
-            response = MetricsConfigService.scrape();
-        }
-
-        else
-        {
-            response = "Prometheus metrics where not enabled";
-        }
-        ;
-
+        String response = jvmMetricsProvider.getMetricsController().scrape();
         webScriptResponse.setStatus(200);
         webScriptResponse.setContentEncoding("UTF-8");
         webScriptResponse.setHeader("lenght", String.valueOf(response.getBytes().length));

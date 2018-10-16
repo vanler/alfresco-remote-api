@@ -1771,6 +1771,6 @@
 	<!-- Prometheus metrics -->
 	<bean id="webscript.org.alfresco.metrics.prometheus.get" class="org.alfresco.repo.web.scripts.metrics.PrometheusGet"
 		parent="webscript" init-method="initPrometheus">
-		<property name="enableMetrics" value="${webscripts.enableMetrics}" />
+		<property name="jvmMetricsProvider" ref="jvmMetricsProvider"/>
 	</bean>
 </beans>

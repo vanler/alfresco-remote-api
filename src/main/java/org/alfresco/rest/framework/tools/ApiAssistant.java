@@ -25,6 +25,7 @@
  */
 package org.alfresco.rest.framework.tools;
 
+import org.alfresco.micrometer.RestMetricsProvider;
 import org.alfresco.rest.framework.Api;
 import org.alfresco.rest.framework.core.exceptions.DefaultExceptionResolver;
 import org.alfresco.rest.framework.core.exceptions.ErrorResponse;
@@ -41,7 +42,8 @@ import java.util.Map;
  *
  * @author Gethin James
  */
-public class ApiAssistant {
+public class ApiAssistant
+{
 
     private static Log logger = LogFactory.getLog(ApiAssistant.class);
 
@@ -49,9 +51,11 @@ public class ApiAssistant {
     private ExceptionResolver<WebScriptException> webScriptExceptionResolver;
     private ExceptionResolver<Exception> resolver;
     private JacksonHelper jsonHelper;
+    private RestMetricsProvider restMetricsProvider;
 
     /**
      * Determines the api being used from the templateVars
+     * 
      * @param templateVars
      * @return Api
      */
@@ -60,11 +64,12 @@ public class ApiAssistant {
         String apiScope = templateVars.get("apiScope");
         String apiVersion = templateVars.get("apiVersion");
         String apiName = templateVars.get("apiName");
-        return Api.valueOf(apiName,apiScope,apiVersion);
+        return Api.valueOf(apiName, apiScope, apiVersion);
     }
 
     /**
      * Resolves an exception as a json error.
+     * 
      * @param exception
      * @return ErrorResponse
      */
@@ -86,23 +91,38 @@ public class ApiAssistant {
         return error;
     }
 
-    public JacksonHelper getJsonHelper() {
+    public JacksonHelper getJsonHelper()
+    {
         return jsonHelper;
     }
 
-    public void setDefaultResolver(ExceptionResolver<Exception> defaultResolver) {
+    public void setDefaultResolver(ExceptionResolver<Exception> defaultResolver)
+    {
         this.defaultResolver = defaultResolver;
     }
 
-    public void setWebScriptExceptionResolver(ExceptionResolver<WebScriptException> webScriptExceptionResolver) {
+    public void setWebScriptExceptionResolver(ExceptionResolver<WebScriptException> webScriptExceptionResolver)
+    {
         this.webScriptExceptionResolver = webScriptExceptionResolver;
     }
 
-    public void setResolver(ExceptionResolver<Exception> resolver) {
+    public void setResolver(ExceptionResolver<Exception> resolver)
+    {
         this.resolver = resolver;
     }
 
-    public void setJsonHelper(JacksonHelper jsonHelper) {
+    public void setJsonHelper(JacksonHelper jsonHelper)
+    {
         this.jsonHelper = jsonHelper;
+    }
+
+    public RestMetricsProvider getRestMetricsProvider()
+    {
+        return restMetricsProvider;
+    }
+
+    public void setRestMetricsProvider(RestMetricsProvider restMetricsProvider)
+    {
+        this.restMetricsProvider = restMetricsProvider;
     }
 }
